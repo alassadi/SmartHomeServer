@@ -42,6 +42,8 @@ exports.getRooms = functions.https.onRequest((req, res) => {
                 message: 'Not allowed'
             });
         };
-        getRoomsFromDatabase(res)
+        //console.log(req.query);
+        getRoomsFromDatabase(res);
     });
 });
+
