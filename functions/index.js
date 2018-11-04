@@ -82,3 +82,26 @@ exports.getRoomDevices = functions.https.onRequest((req, res) => {
   });
 });
 
+
+const turnOnDevice = (res, req) => {
+  return database.collection('Devices').doc(req.query.id).update({'enabled': true})
+      .then(res.status(200).json({
+        // here we shd get confirmation from the gateway first, but this is for testing purposes 
+        message: 'Device is On'
+    }))
+      .catch((err) => {
+          console.log('Error getting documents', err);
+      });
+};
+
+
+exports.turnOnDevice = functions.https.onRequest((req, res) => {
+  return cors(req, res, () => {
+      if (req.method !== 'GET') {
+          return res.status(401).json({
+              message: 'Not allowed'
+          });
+      };
+      turnOnDevice(res,req);
+  });
+});
