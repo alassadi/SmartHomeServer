@@ -105,3 +105,26 @@ exports.turnOnDevice = functions.https.onRequest((req, res) => {
       turnOnDevice(res,req);
   });
 });
+
+const turnOffDevice = (res, req) => {
+  return database.collection('Devices').doc(req.query.id).update({'enabled': false})
+      .then(res.status(200).json({
+        // here we shd get confirmation from the gateway first, but this is for testing purposes 
+        message: 'Device is Off'
+    }))
+      .catch((err) => {
+          console.log('Error getting documents', err);
+      });
+};
+
+
+exports.turnOffDevice = functions.https.onRequest((req, res) => {
+  return cors(req, res, () => {
+      if (req.method !== 'GET') {
+          return res.status(401).json({
+              message: 'Not allowed'
+          });
+      };
+      turnOffDevice(res,req);
+  });
+});
