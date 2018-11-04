@@ -51,12 +51,12 @@ exports.getRooms = functions.https.onRequest((req, res) => {
 const getRoomDevices = (res,req) => {
   let devices = [];
 
-  return database.collection('Devices').where('roomUUID', '==', '${req.query.id}').get()
+  return database.collection('Devices').where('roomUUID', '==', req.query.id).get()
       .then((snapshot) => {
           snapshot.forEach((name) => {
               devices.push({
                   id: name.id,
-                  details: name.data()
+                  number: name.data()
               });
           });
           res.status(200).json(devices);
