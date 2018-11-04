@@ -55,8 +55,8 @@ const getRoomDevices = (res,req) => {
       .then((snapshot) => {
           snapshot.forEach((name) => {
               devices.push({
-                  id: name.id,
-                  number: name.data()
+                  device_id: name.id,
+                  details: name.data()
               });
           });
           res.status(200).json(devices);
