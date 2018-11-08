@@ -87,7 +87,7 @@ const turnOnDevice = (res, req) => {
   return database.collection('Devices').doc(req.query.id).update({'enabled': true})
       .then(res.status(200).json({
         // here we shd get confirmation from the gateway first, but this is for testing purposes 
-        message: 'Device is On'
+        [req.query.id] : 'Device is On'
     }))
       .catch((err) => {
           console.log('Error getting documents', err);
@@ -109,8 +109,9 @@ exports.turnOnDevice = functions.https.onRequest((req, res) => {
 const turnOffDevice = (res, req) => {
   return database.collection('Devices').doc(req.query.id).update({'enabled': false})
       .then(res.status(200).json({
+          //we shd check if the key exists before sending the res
         // here we shd get confirmation from the gateway first, but this is for testing purposes 
-        message: 'Device is Off'
+        [req.query.id]: 'Device is Off'
     }))
       .catch((err) => {
           console.log('Error getting documents', err);
