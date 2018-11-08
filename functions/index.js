@@ -47,3 +47,38 @@ exports.getRooms = functions.https.onRequest((req, res) => {
     });
 });
 
+
+const getRoomDevices = (res,req) => {
+  let devices = [];
+
+  return database.collection('Devices').where('roomUUID', '==', req.query.id).get()
+      .then((snapshot) => {
+          snapshot.forEach((name) => {
+              devices.push({
+                  device_id: name.id,
+                  details: name.data()
+              });
+          });
+          res.status(200).json(devices);
+      }, (error) => {
+          res.status(error.code).json({
+              message: 'Something went wrong. ${error.message}'
+          })
+      })
+      .catch((err) => {
+          console.log('Error getting documents', err);
+      });
+};
+
+
+exports.getRoomDevices = functions.https.onRequest((req, res) => {
+  return cors(req, res, () => {
+      if (req.method !== 'GET') {
+          return res.status(401).json({
+              message: 'Not allowed'
+          });
+      };
+      getRoomDevices(res,req);
+  });
+});
+
