@@ -193,3 +193,14 @@ exports.getDeviceFromDB = functions.https.onRequest((req, res) => {
         getDeviceFromDB(res, req);
     }) ;
 });
+
+/**
+ * Function called when the status of the light bulb is updated
+ * on the database
+ * @type {CloudFunction<Change<DocumentSnapshot>>}
+ */
+exports.onDeviceUpdated = functions.firestore
+    .document('Devices/my9iXu6WvEgx5oNLLegs').onUpdate((change, context) => {
+            console.log('the device status has been updated');
+            return change.after.data();
+    });
