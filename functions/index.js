@@ -82,3 +82,47 @@ exports.getRoomDevices = functions.https.onRequest((req, res) => {
   });
 });
 
+exports.registerUnit = functions.https.onRequest((req, res) => {
+    if(req.method !== "POST") {
+        return res.status(400).json({
+            message: "Bad request, POST Required"
+        })
+    } else {
+        const data = req.body;
+        database.collection('Users').doc(data.uid).collection('Units').add({
+            unit_type : data.unit_type.toString(),
+            fcm_token : data.fcm_token.toString()
+        }).then((unit) => {
+            return res.status(200).json({
+                message: 'Device registered successfully with UID: ' + unit.uid
+            })
+        }).catch((error) => {
+            res.json({
+                message: "error" + error.toString()
+            })
+        })
+    }
+});
+
+exports.updateFcmToken = functions.https.onRequest((req, res) => {
+    if(req.method !== "POST") {
+        return res.status(400).json({
+            message: "Bad request, POST Required"
+        })
+    } else {
+        const data = req.body;
+        database.collection('Users').doc(data.uid).collection('Units').doc(data.unit_uid).update({
+            fcm_token : data.fcm_token.toString()
+        })
+            .then(() => {
+                console.log("FCM Token added to client for user: " + data.uid)
+                return res.status(200).json({
+                    message: "Fcm token registered"
+                })
+            }).catch((error) => {
+            res.json({
+                message: "error" + error.toString()
+            })
+        })
+    }
+});
