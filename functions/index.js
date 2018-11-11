@@ -1,131 +1,17 @@
-const functions = require('firebase-functions');
-const cors = require('cors')({
-    origin: true
-});
 
+const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 admin.initializeApp(functions.config().firebase);
-const database = admin.firestore();
 
+const rooms = require('./rooms');
+const devices = require('./devices');
 
-exports.helloWorld = functions.https.onRequest((req, res) => {
-    res.send("Hello from a Serverless Database!");
-});
-
-const getRoomsFromDatabase = (res) => {
-    let rooms = [];
-
-    return database.collection('Rooms').get()
-        .then((snapshot) => {
-            snapshot.forEach((room_number) => {
-                rooms.push({
-                    id: room_number.id,
-                    number: room_number.data()
-                });
-            });
-            res.status(200).json(rooms);
-        }, (error) => {
-            res.status(error.code).json({
-                message: `Something went wrong. ${error.message}`
-            })
-        })
-        .catch((err) => {
-            console.log('Error getting documents', err);
-        });
+const funs = {
+  helloWorld: functions.https.onRequest((req, res) => {
+    res.send('Hello from a Serverless Database!');
+  }),
+  ...rooms,
+  ...devices
 };
 
-
-exports.getRooms = functions.https.onRequest((req, res) => {
-    return cors(req, res, () => {
-        if (req.method !== 'GET') {
-            return res.status(401).json({
-                message: 'Not allowed'
-            });
-        };
-        //console.log(req.query);
-        getRoomsFromDatabase(res);
-    });
-});
-
-
-const getRoomDevices = (res,req) => {
-  let devices = [];
-
-  return database.collection('Devices').where('roomUUID', '==', req.query.id).get()
-      .then((snapshot) => {
-          snapshot.forEach((name) => {
-              devices.push({
-                  device_id: name.id,
-                  details: name.data()
-              });
-          });
-          res.status(200).json(devices);
-      }, (error) => {
-          res.status(error.code).json({
-              message: 'Something went wrong. ${error.message}'
-          })
-      })
-      .catch((err) => {
-          console.log('Error getting documents', err);
-      });
-};
-
-
-exports.getRoomDevices = functions.https.onRequest((req, res) => {
-  return cors(req, res, () => {
-      if (req.method !== 'GET') {
-          return res.status(401).json({
-              message: 'Not allowed'
-          });
-      };
-      getRoomDevices(res,req);
-  });
-});
-
-
-const turnOnDevice = (res, req) => {
-  return database.collection('Devices').doc(req.query.id).update({'enabled': true})
-      .then(res.status(200).json({
-        // here we shd get confirmation from the gateway first, but this is for testing purposes 
-        [req.query.id] : 'Device is On'
-    }))
-      .catch((err) => {
-          console.log('Error getting documents', err);
-      });
-};
-
-
-exports.turnOnDevice = functions.https.onRequest((req, res) => {
-  return cors(req, res, () => {
-      if (req.method !== 'GET') {
-          return res.status(401).json({
-              message: 'Not allowed'
-          });
-      };
-      turnOnDevice(res,req);
-  });
-});
-
-const turnOffDevice = (res, req) => {
-  return database.collection('Devices').doc(req.query.id).update({'enabled': false})
-      .then(res.status(200).json({
-          //we shd check if the key exists before sending the res
-        // here we shd get confirmation from the gateway first, but this is for testing purposes 
-        [req.query.id]: 'Device is Off'
-    }))
-      .catch((err) => {
-          console.log('Error getting documents', err);
-      });
-};
-
-
-exports.turnOffDevice = functions.https.onRequest((req, res) => {
-  return cors(req, res, () => {
-      if (req.method !== 'GET') {
-          return res.status(401).json({
-              message: 'Not allowed'
-          });
-      };
-      turnOffDevice(res,req);
-  });
-});
+module.exports = funs;
