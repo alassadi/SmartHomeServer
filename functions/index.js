@@ -7,6 +7,23 @@ const admin = require('firebase-admin');
 admin.initializeApp(functions.config().firebase);
 const database = admin.firestore();
 
+const express = require('express');
+const bodyParser = require('body-parser');
+
+const app = express();
+
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: false }));
+
+// parse application/json
+app.use(bodyParser.json());
+
+app.use(function (req, res) {
+    res.setHeader('Content-Type', 'application/json')
+    res.write('you posted:\n')
+    res.end(JSON.stringify(req.body, null, 2))
+});
+
 
 exports.helloWorld = functions.https.onRequest((req, res) => {
     res.send("Hello from a Serverless Database!");
@@ -152,13 +169,31 @@ const updateDeviceStatus = (res, req) => {
 exports.updateDeviceStatus = functions.https.onRequest((req, res) => {
     return cors(req, res, () => {
         if (req.method !== 'POST') {
-            return res.status(401).json({
-                message: 'Invalid operation'
+            return res.status(400).json({
+                message: 'Bad request. Send a POST request'
             });
         }
         updateDeviceStatus(res, req);
     }) ;
 });
+
+/**
+ * Updates device through JSON in the form:
+ * { "id": "my9iXu6WvEgx5oNLLegs", "enabled": true }
+ * @type {HttpsFunction}
+ */
+exports.updateDeviceThroughJson = functions.https.onRequest((req, res) => {
+
+    return database.collection('Devices').doc(req.body.id).update({'enabled': req.body.enabled})
+        .then(res.status(200).json({
+            message: [req.body.enabled]
+        }))
+        .catch((err) => {
+                console.log('Error updating database', err);
+            }
+        );
+})
+
 
 
 const getDeviceFromDB = (res, req) => {
@@ -186,8 +221,8 @@ const getDeviceFromDB = (res, req) => {
 exports.getDeviceFromDB = functions.https.onRequest((req, res) => {
     return cors(req, res, () => {
         if (req.method !== 'GET') {
-            return res.status(401).json({
-                message: 'Invalid operation'
+            return res.status(400).json({
+                message: 'Bad request. Send a GET request'
             });
         }
         getDeviceFromDB(res, req);
@@ -204,3 +239,6 @@ exports.onDeviceUpdated = functions.firestore
             console.log('the device status has been updated');
             return change.after.data();
     });
+
+
+
