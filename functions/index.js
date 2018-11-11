@@ -6,6 +6,8 @@ const cors = require('cors')({
 const admin = require('firebase-admin');
 admin.initializeApp(functions.config().firebase);
 const database = admin.firestore();
+const realTimeDatabase = admin.database();
+const dbref = realTimeDatabase.ref();
 
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -148,7 +150,7 @@ exports.turnOffDevice = functions.https.onRequest((req, res) => {
 });
 
 const updateDeviceStatus = (res, req) => {
-    return database.collection('Devices').doc(req.query.id).update({'enabled': req.query.enabled})
+    return dbref.child('Devices/' + req.query.id).update({'enabled': req.query.enabled})
         .then(res.status(200).json({
             message: [req.query.enabled]
         }))
@@ -184,7 +186,7 @@ exports.updateDeviceStatus = functions.https.onRequest((req, res) => {
  */
 exports.updateDeviceThroughJson = functions.https.onRequest((req, res) => {
 
-    return database.collection('Devices').doc(req.body.id).update({'enabled': req.body.enabled})
+    return dbref.child('Devices/' + req.body.id).update({'enabled': req.body.enabled})
         .then(res.status(200).json({
             message: [req.body.enabled]
         }))
@@ -198,17 +200,12 @@ exports.updateDeviceThroughJson = functions.https.onRequest((req, res) => {
 
 const getDeviceFromDB = (res, req) => {
 
-    var docRef = database.collection("Devices").doc(req.query.id);
-
-    docRef.get().then(function(doc) {
-        if (doc.exists) {
-            return res.status(200).json({
-                [req.query.id] : doc.data()
-            });
-        } else {
-            console.log("No such document!");
-        }
-    }).catch(function(error) {
+    var devicesRef = dbref.child('Devices');
+    devicesRef.on('value', function(snapshot) {
+        return res.status(200).json({
+            [req.query.id]: snapshot.child(req.query.id).val()
+    });
+        }).catch(function(error) {
         console.log("Error getting document:", error);
     });
 };
@@ -231,14 +228,24 @@ exports.getDeviceFromDB = functions.https.onRequest((req, res) => {
 
 /**
  * Function called when the status of the light bulb is updated
- * on the database
+ * on the firestore database
  * @type {CloudFunction<Change<DocumentSnapshot>>}
  */
 exports.onDeviceUpdated = functions.firestore
     .document('Devices/my9iXu6WvEgx5oNLLegs').onUpdate((change, context) => {
-            console.log('the device status has been updated');
+            console.log('the device status on firestore db has been updated');
             return change.after.data();
     });
+
+/**
+ * Function called when the status of the light bulb is updated
+ * on the realtime database
+ * @type {CloudFunction<Change<DataSnapshot>>}
+ */
+exports.onDeviceUpdatedRealtime = functions.database.
+ref('Devices/my9iXu6WvEgx5oNLLegs').onUpdate((snapshot, context) => {
+    console.log('the device status on realtime db has been updated');
+});
 
 
 
