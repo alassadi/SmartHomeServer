@@ -6,6 +6,8 @@ const cors = require('cors')({
 const admin = require('firebase-admin');
 admin.initializeApp(functions.config().firebase);
 const database = admin.firestore();
+const realTimeDatabase = admin.database();
+const dbref = realTimeDatabase.ref();
 
 
 exports.helloWorld = functions.https.onRequest((req, res) => {
@@ -89,12 +91,13 @@ exports.registerUnit = functions.https.onRequest((req, res) => {
         })
     } else {
         const data = req.body;
-        database.collection('Users').doc(data.uid).collection('Units').add({
+        dbref.child('Users').child(data.uid).child('Units').push({
             unit_type : data.unit_type.toString(),
             fcm_token : data.fcm_token.toString()
         }).then((unit) => {
             return res.status(200).json({
-                message: 'Device registered successfully with UID: ' + unit.uid
+                message: 'Device registered successfully',
+                uid: unit.key
             })
         }).catch((error) => {
             res.json({
@@ -111,7 +114,7 @@ exports.updateFcmToken = functions.https.onRequest((req, res) => {
         })
     } else {
         const data = req.body;
-        database.collection('Users').doc(data.uid).collection('Units').doc(data.unit_uid).update({
+        dbref.child('Users').child(data.uid).child('Units').child(data.unit_uid).update({
             fcm_token : data.fcm_token.toString()
         })
             .then(() => {
