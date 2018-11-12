@@ -5,13 +5,15 @@ admin.initializeApp(functions.config().firebase);
 
 const rooms = require('./rooms');
 const devices = require('./devices');
+const units = require('./units');
 
 const funs = {
   helloWorld: functions.https.onRequest((req, res) => {
     res.send('Hello from a Serverless Database!');
   }),
   ...rooms,
-  ...devices
+  ...devices,
+  ...units
 };
 
 module.exports = funs;
