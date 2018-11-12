@@ -5,7 +5,7 @@
     "serve": "firebase serve --only functions",
     "shell": "firebase functions:shell",
     "start": "npm run shell",
-    "deploy": "firebase deploy --only functions",
+    "deploy": "cd .. && npm run deploy",
     "logs": "firebase functions:log",
     "eslint": "eslint --ignore-path .gitignore */**.js",
     "eslint:fix": "eslint --ignore-path .gitignore */**.js --fix"
@@ -15,5 +15,10 @@
     "firebase-admin": "~6.0.0",
     "firebase-functions": "^2.1.0"
   },
-  "private": true
+  "private": true,
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
+    "rimraf": "^2.6.2"
+  }
 }
