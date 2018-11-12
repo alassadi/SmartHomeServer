@@ -1,0 +1,32 @@
+{
+  "name": "SmartHomeServer",
+  "version": "1.0.0",
+  "description": "A Firebase Functions repository for our SmartHome project, as part of our Software Engineering 2 course at HKR.",
+  "main": "index.js",
+  "scripts": {
+    "prebuild": "node ./node_modules/rimraf/bin functions",
+    "build": "babel app --out-dir functions --copy-files --ignore app/node_modules",
+    "predeploy": "npm run build",
+    "deploy": "firebase deploy --only functions",
+    "postbuild": "cd functions && npm i -s"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alassadi/SmartHomeServer.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/alassadi/SmartHomeServer/issues"
+  },
+  "homepage": "https://github.com/alassadi/SmartHomeServer#readme",
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
+    "rimraf": "^2.6.2"
+  },
+  "dependencies": {
+    "babel-plugin-transform-object-rest-spread": "^6.26.0"
+  }
+}
