@@ -151,9 +151,9 @@ exports.turnOffDevice = functions.https.onRequest((req, res) => {
 
 const updateDeviceStatus = (res, req) => {
     return dbref.child('Devices/' + req.query.id).update({'enabled': req.query.enabled})
-        .then(res.status(200).json({
-            message: [req.query.enabled]
-        }))
+        .then(res.status(200).json(
+            req.query.enabled
+        ))
         .catch((err) => {
                 console.log('Error updating database', err);
             }
@@ -168,7 +168,7 @@ const updateDeviceStatus = (res, req) => {
  * to confirm that the device is turned off
  * @type {HttpsFunction}
  */
-module.exports.updateDeviceStatus = functions.https.onRequest((req, res) => {
+module.exports.updateDeviceStatus = functions.region('europe-west1').https.onRequest((req, res) => {
     return cors(req, res, () => {
         if (req.method !== 'POST') {
             return res.status(400).json({
@@ -184,12 +184,24 @@ module.exports.updateDeviceStatus = functions.https.onRequest((req, res) => {
  * { "id": "my9iXu6WvEgx5oNLLegs", "enabled": true }
  * @type {HttpsFunction}
  */
-module.exports.updateDeviceThroughJson = functions.https.onRequest((req, res) => {
+module.exports.updateDeviceThroughJson = functions.region('europe-west1').https.onRequest((req, res) => {
 
     return dbref.child('Devices/' + req.body.id).update({'enabled': req.body.enabled})
-        .then(res.status(200).json({
-            message: [req.body.enabled]
-        }))
+        .then(res.status(200).json(
+            req.body.enabled
+        ))
+        .catch((err) => {
+                console.log('Error updating database', err);
+            }
+        );
+})
+
+module.exports.updateDeviceThroughJsonEu = functions.region('europe-west1').https.onRequest((req, res) => {
+
+    return dbref.child('Devices/' + req.body.id).update({'enabled': req.body.enabled})
+        .then(res.status(200).json(
+            req.body.enabled
+        ))
         .catch((err) => {
                 console.log('Error updating database', err);
             }
@@ -202,9 +214,9 @@ const getDeviceFromDB = (res, req) => {
 
     var devicesRef = dbref.child('Devices');
     devicesRef.on('value', function(snapshot) {
-        return res.status(200).json({
-            [req.query.id]: snapshot.child(req.query.id).val()
-    });
+        return res.status(200).json(
+            snapshot.child(req.query.id).val()
+    );
 
     });
 };
@@ -214,7 +226,7 @@ const getDeviceFromDB = (res, req) => {
  * https://us-central1-smarthome-3c6b9.cloudfunctions.net/getDeviceFromDB?id=my9iXu6WvEgx5oNLLegs
  * @type {HttpsFunction}
  */
-module.exports.getDeviceFromDB = functions.https.onRequest((req, res) => {
+module.exports.getDeviceFromDB = functions.region('europe-west1').https.onRequest((req, res) => {
     return cors(req, res, () => {
         if (req.method !== 'GET') {
             return res.status(400).json({
@@ -232,12 +244,12 @@ module.exports.getDeviceFromDB = functions.https.onRequest((req, res) => {
  * with JSON such as { "id" = "my9iXu6WvEgx5oNLLegs" }
  * @type {HttpsFunction}
  */
-module.exports.getDeviceFromDBJson = functions.https.onRequest((req, res) => {
+module.exports.getDeviceFromDBJson = functions.region('europe-west1').https.onRequest((req, res) => {
     var devicesRef = dbref.child('Devices');
-    devicesRef.on('value', function(snapshot) {
-        return res.status(200).json({
-            [req.body.id]: snapshot.child(req.body.id).val()
-        });
+    devicesRef.on('value', function (snapshot) {
+        return res.status(200).json(
+            snapshot.child(req.body.id).val()
+        );
     });
 });
 
@@ -248,7 +260,7 @@ module.exports.getDeviceFromDBJson = functions.https.onRequest((req, res) => {
  * on the firestore database
  * @type {CloudFunction<Change<DocumentSnapshot>>}
  */
-module.exports.onDeviceUpdated = functions.firestore
+module.exports.onDeviceUpdated = functions.region('europe-west1').firestore
     .document('Devices/my9iXu6WvEgx5oNLLegs').onUpdate((change, context) => {
             console.log('the device status on firestore db has been updated');
             return change.after.data();
@@ -259,7 +271,7 @@ module.exports.onDeviceUpdated = functions.firestore
  * on the realtime database
  * @type {CloudFunction<Change<DataSnapshot>>}
  */
-module.exports.onDeviceUpdatedRealtime = functions.database.
+module.exports.onDeviceUpdatedRealtime = functions.region('europe-west1').database.
 ref('Devices/my9iXu6WvEgx5oNLLegs').onUpdate((snapshot, context) => {
     console.log('the device status on realtime db has been updated');
 });
