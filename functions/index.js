@@ -162,9 +162,9 @@ const updateDeviceStatus = (res, req) => {
 
 /**
  * Send a POST request such as
- * https://us-central1-smarthome-3c6b9.cloudfunctions.net/updateDeviceStatus?id=my9iXu6WvEgx5oNLLegs&enabled=true
+ * https://europe-west1-smarthome-3c6b9.cloudfunctions.net/updateDeviceStatus?id=my9iXu6WvEgx5oNLLegs&enabled=true
  * to confirm that the device is turned on, and
- * https://us-central1-smarthome-3c6b9.cloudfunctions.net/updateDeviceStatus?id=my9iXu6WvEgx5oNLLegs&enabled=false
+ * https://europe-west1-smarthome-3c6b9.cloudfunctions.net/updateDeviceStatus?id=my9iXu6WvEgx5oNLLegs&enabled=false
  * to confirm that the device is turned off
  * @type {HttpsFunction}
  */
@@ -223,7 +223,7 @@ const getDeviceFromDB = (res, req) => {
 
 /**
  * Send a GET request such as
- * https://us-central1-smarthome-3c6b9.cloudfunctions.net/getDeviceFromDB?id=my9iXu6WvEgx5oNLLegs
+ * https://europe-west1-smarthome-3c6b9.cloudfunctions.net/getDeviceFromDB?id=my9iXu6WvEgx5oNLLegs
  * @type {HttpsFunction}
  */
 module.exports.getDeviceFromDB = functions.region('europe-west1').https.onRequest((req, res) => {
@@ -240,7 +240,7 @@ module.exports.getDeviceFromDB = functions.region('europe-west1').https.onReques
 
 /**
  * Send a POST request such as
- * https://us-central1-smarthome-3c6b9.cloudfunctions.net/getDeviceFromDBJson
+ * https://europe-west1-smarthome-3c6b9.cloudfunctions.net/getDeviceFromDBJson
  * with JSON such as { "id" = "my9iXu6WvEgx5oNLLegs" }
  * @type {HttpsFunction}
  */
