@@ -168,7 +168,7 @@ const updateDeviceStatus = (res, req) => {
  * to confirm that the device is turned off
  * @type {HttpsFunction}
  */
-exports.updateDeviceStatus = functions.https.onRequest((req, res) => {
+module.exports.updateDeviceStatus = functions.https.onRequest((req, res) => {
     return cors(req, res, () => {
         if (req.method !== 'POST') {
             return res.status(400).json({
@@ -184,7 +184,7 @@ exports.updateDeviceStatus = functions.https.onRequest((req, res) => {
  * { "id": "my9iXu6WvEgx5oNLLegs", "enabled": true }
  * @type {HttpsFunction}
  */
-exports.updateDeviceThroughJson = functions.https.onRequest((req, res) => {
+module.exports.updateDeviceThroughJson = functions.https.onRequest((req, res) => {
 
     return dbref.child('Devices/' + req.body.id).update({'enabled': req.body.enabled})
         .then(res.status(200).json({
@@ -205,8 +205,7 @@ const getDeviceFromDB = (res, req) => {
         return res.status(200).json({
             [req.query.id]: snapshot.child(req.query.id).val()
     });
-        }).catch(function(error) {
-        console.log("Error getting document:", error);
+
     });
 };
 
@@ -215,7 +214,7 @@ const getDeviceFromDB = (res, req) => {
  * https://us-central1-smarthome-3c6b9.cloudfunctions.net/getDeviceFromDB?id=my9iXu6WvEgx5oNLLegs
  * @type {HttpsFunction}
  */
-exports.getDeviceFromDB = functions.https.onRequest((req, res) => {
+module.exports.getDeviceFromDB = functions.https.onRequest((req, res) => {
     return cors(req, res, () => {
         if (req.method !== 'GET') {
             return res.status(400).json({
@@ -226,12 +225,30 @@ exports.getDeviceFromDB = functions.https.onRequest((req, res) => {
     }) ;
 });
 
+
+/**
+ * Send a POST request such as
+ * https://us-central1-smarthome-3c6b9.cloudfunctions.net/getDeviceFromDBJson
+ * with JSON such as { "id" = "my9iXu6WvEgx5oNLLegs" }
+ * @type {HttpsFunction}
+ */
+module.exports.getDeviceFromDBJson = functions.https.onRequest((req, res) => {
+    var devicesRef = dbref.child('Devices');
+    devicesRef.on('value', function(snapshot) {
+        return res.status(200).json({
+            [req.body.id]: snapshot.child(req.body.id).val()
+        });
+    });
+});
+
+
+
 /**
  * Function called when the status of the light bulb is updated
  * on the firestore database
  * @type {CloudFunction<Change<DocumentSnapshot>>}
  */
-exports.onDeviceUpdated = functions.firestore
+module.exports.onDeviceUpdated = functions.firestore
     .document('Devices/my9iXu6WvEgx5oNLLegs').onUpdate((change, context) => {
             console.log('the device status on firestore db has been updated');
             return change.after.data();
@@ -242,7 +259,7 @@ exports.onDeviceUpdated = functions.firestore
  * on the realtime database
  * @type {CloudFunction<Change<DataSnapshot>>}
  */
-exports.onDeviceUpdatedRealtime = functions.database.
+module.exports.onDeviceUpdatedRealtime = functions.database.
 ref('Devices/my9iXu6WvEgx5oNLLegs').onUpdate((snapshot, context) => {
     console.log('the device status on realtime db has been updated');
 });
