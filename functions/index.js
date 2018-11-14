@@ -151,9 +151,9 @@ exports.turnOffDevice = functions.https.onRequest((req, res) => {
 
 const updateDeviceStatus = (res, req) => {
     return dbref.child('Devices/' + req.query.id).update({'enabled': req.query.enabled})
-        .then(res.status(200).json(
-            req.query.enabled
-        ))
+        .then(res.status(200).json({
+            'enabled': req.query.enabled
+    }))
         .catch((err) => {
                 console.log('Error updating database', err);
             }
@@ -187,21 +187,9 @@ module.exports.updateDeviceStatus = functions.region('europe-west1').https.onReq
 module.exports.updateDeviceThroughJson = functions.region('europe-west1').https.onRequest((req, res) => {
 
     return dbref.child('Devices/' + req.body.id).update({'enabled': req.body.enabled})
-        .then(res.status(200).json(
-            req.body.enabled
-        ))
-        .catch((err) => {
-                console.log('Error updating database', err);
-            }
-        );
-})
-
-module.exports.updateDeviceThroughJsonEu = functions.region('europe-west1').https.onRequest((req, res) => {
-
-    return dbref.child('Devices/' + req.body.id).update({'enabled': req.body.enabled})
-        .then(res.status(200).json(
-            req.body.enabled
-        ))
+        .then(res.status(200).json({
+            'enabled': req.body.enabled
+        }))
         .catch((err) => {
                 console.log('Error updating database', err);
             }
