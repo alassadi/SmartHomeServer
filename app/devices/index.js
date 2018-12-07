@@ -5,12 +5,12 @@ const cors = require('cors')({
 
 const admin = require('firebase-admin');
 
-admin.initializeApp(functions.config().firebase);
+//admin.initializeApp(functions.config().firebase);
 const database = admin.firestore();
 const realTimeDatabase = admin.database();
 const dbref = realTimeDatabase.ref();
 
-const express = require('express');
+/*const express = require('express');
 const bodyParser = require('body-parser');
 
 const app = express();
@@ -36,7 +36,7 @@ const allowCrossDomain = function(req, res, next) {
 
 app.configure(function() {
     app.use(allowCrossDomain);
-});
+});*/
 
 
 const turnOnDevice = (res, req) => {
@@ -86,16 +86,7 @@ module.exports.turnOffDevice = functions.https.onRequest((req, res) => {
   });
 });
 
-const updateDeviceStatus = (res, req) => {
-    return dbref.child('Devices/' + req.query.id).update({'enabled': req.query.enabled})
-        .then(res.status(200).json({
-            'enabled': req.query.enabled
-        }))
-        .catch((err) => {
-                console.log('Error updating database', err);
-            }
-        );
-};
+
 
 module.exports.device = functions.region('europe-west1').https.onRequest((req, res) => {
    return cors(req, res, () => {
@@ -119,6 +110,34 @@ module.exports.device = functions.region('europe-west1').https.onRequest((req, r
    })
 
 });
+
+module.exports.device_url = functions.region('europe-west1').https.onRequest((req, res) => {
+    return cors(req, res, () => {
+        if (req.method === 'GET') {
+            var devicesRef = dbref.child('Devices');
+            devicesRef.on('value', function (snapshot) {
+                return res.status(200).json(snapshot.child(req.query.id).val());
+            });
+        } else if (req.method === 'POST') {
+            return dbref.child('Devices/' + req.query.id).update({ 'enabled': req.query.enabled }).then(res.status(200).json({
+                'enabled': req.query.enabled
+            })).catch(err => {
+                console.log('Error updating database', err);
+            });
+        }
+    });
+});
+
+const updateDeviceStatus = (res, req) => {
+    return dbref.child('Devices/' + req.query.id).update({'enabled': req.query.enabled})
+        .then(res.status(200).json({
+            'enabled': req.query.enabled
+        }))
+        .catch((err) => {
+                console.log('Error updating database', err);
+            }
+        );
+};
 
 /**
  * Send a POST request such as
