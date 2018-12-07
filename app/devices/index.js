@@ -2,6 +2,7 @@ const functions = require('firebase-functions');
 const cors = require('cors')({
   origin: true
 });
+
 const admin = require('firebase-admin');
 
 admin.initializeApp(functions.config().firebase);
@@ -24,6 +25,17 @@ app.use(function (req, res) {
     res.setHeader('Content-Type', 'application/json')
     res.write('you posted:\n')
     res.end(JSON.stringify(req.body, null, 2))
+});
+
+const allowCrossDomain = function(req, res, next) {
+    res.header('Access-Control-Allow-Origin', "*");
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
+    next();
+}
+
+app.configure(function() {
+    app.use(allowCrossDomain);
 });
 
 
@@ -84,6 +96,29 @@ const updateDeviceStatus = (res, req) => {
             }
         );
 };
+
+module.exports.device = functions.region('europe-west1').https.onRequest((req, res) => {
+   return cors(req, res, () => {
+       if (req.method === 'GET') {
+           var devicesRef = dbref.child('Devices');
+           devicesRef.on('value', function (snapshot) {
+               return res.status(200).json(
+                   snapshot.child(req.body.id).val()
+               );
+           });
+       } else if (req.method === 'POST') {
+           return dbref.child('Devices/' + req.body.id).update({'enabled': req.body.enabled})
+               .then(res.status(200).json({
+                   'enabled': req.body.enabled
+               }))
+               .catch((err) => {
+                       console.log('Error updating database', err);
+                   }
+               );
+       }
+   })
+
+});
 
 /**
  * Send a POST request such as
