@@ -11,6 +11,7 @@ const realTimeDatabase = admin.database();
 const dbref = realTimeDatabase.ref();
 
 
+
 /** With JSON:
  * Send a PUT request such as
  * https://europe-west1-smarthome-3c6b9.cloudfunctions.net/device
@@ -40,35 +41,75 @@ const dbref = realTimeDatabase.ref();
  */
 module.exports.device = functions.region('europe-west1').https.onRequest((req, res) => {
 
-    //if (module.exports.authentication(req, res)) {
+    if (module.exports.authentication(req, res) !== null) {
+        if (req.body.constructor === Object && Object.keys(req.body).length === 0) {
+            if (req.method === 'GET') {
+                var devicesRef = dbref.child('Devices');
+                devicesRef.on('value', function (snapshot) {
+                    return res.status(200).json(snapshot.child(req.query.id).val());
+                });
+            } else if (req.method === 'POST') {
+                return dbref.child('Devices/' + req.query.id).update({ 'enabled': req.query.enabled }).then(res.status(200).json({
+                    'enabled': req.query.enabled
+                })).catch(err => {
+                    console.log('Error updating database', err);
+                });
+            }
+        } else {
+            if (req.method === 'POST') {
+                var devicesRef = dbref.child('Devices');
+                devicesRef.on('value', function (snapshot) {
+                    return res.status(200).json(snapshot.child(req.body.id).val());
+                });
+            } else if (req.method === 'PUT') {
+                return dbref.child('Devices/' + req.body.id).update({'enabled': req.body.enabled}).then(res.status(200).json({
+                    'enabled': req.body.enabled
+                })).catch(err => {
+                    console.log('Error updating database', err);
+                });
+            }
+        }
+    }});
+
+/**
+ * Gets ALL the devices in the house, or all devices in a room.
+ * To get all devices in the house, send a GET request such as:
+ * https://europe-west1-smarthome-3c6b9.cloudfunctions.net/devices
+ *
+ * To get all devices in a room with JSON, send a POST request
+ * with JSON such as { "room": "K7F2O2YJLAWJxy4t9DI9" }
+ *
+ * To get all devices by url parameters, send a GET request such as
+ * https://europe-west1-smarthome-3c6b9.cloudfunctions.net/devices?room=K7F2O2YJLAWJxy4t9DI9
+ * @type {HttpsFunction}
+ */
+module.exports.devices = functions.region('europe-west1').https.onRequest((req, res) => {
+
     if (req.body.constructor === Object && Object.keys(req.body).length === 0) {
+
         if (req.method === 'GET') {
-            var devicesRef = dbref.child('Devices');
-            devicesRef.on('value', function (snapshot) {
-                return res.status(200).json(snapshot.child(req.query.id).val());
-            });
-        } else if (req.method === 'POST') {
-            return dbref.child('Devices/' + req.query.id).update({ 'enabled': req.query.enabled }).then(res.status(200).json({
-                'enabled': req.query.enabled
-            })).catch(err => {
-                console.log('Error updating database', err);
-            });
+            if (Object.keys(req.query).length === 0) {
+                var devicesRef = dbref.child('Devices');
+                devicesRef.on('value', function (snapshot) {
+                    return res.status(200).json(snapshot.val());
+                });
+            } else {
+                var devicesRef = dbref.child('Devices');
+                devicesRef.orderByChild('room_id').equalTo(req.query.room).on('value', function (snapshot) {
+                    return res.status(200).json(snapshot.val());
+                });
+            }
         }
     } else {
         if (req.method === 'POST') {
             var devicesRef = dbref.child('Devices');
-            devicesRef.on('value', function (snapshot) {
-                return res.status(200).json(snapshot.child(req.body.id).val());
-            });
-        } else if (req.method === 'PUT') {
-            return dbref.child('Devices/' + req.body.id).update({'enabled': req.body.enabled}).then(res.status(200).json({
-                'enabled': req.body.enabled
-            })).catch(err => {
-                console.log('Error updating database', err);
+            devicesRef.orderByChild('room_id').equalTo(req.body.room).on('value', function (snapshot) {
+                return res.status(200).json(snapshot.val());
             });
         }
-        //}
-    }});
+    }
+
+});
 
 
 
@@ -90,16 +131,17 @@ module.exports.onDeviceUpdated = functions.region('europe-west1').database.ref('
  */
 module.exports.authentication = function authentication(req, res) {
     cors(req, res, () => {
-        const tokenId = req.get('Authorization').split('Bearer')[1];
+        const tokenId = req.get('Authorization').split('Bearer ')[1];
 
         return admin.auth().verifyIdToken(tokenId)
-            .then((decoded) =>  {res.status(200).send(decoded)
-                console.log("Authorized request")
-                return true
+            .then(function(decodedToken) {
+                var uid = decodedToken.uid;
+                console.log("Authorized request");
+                return uid
             })
             .catch((err) => {res.status(401).send(err)
-                console.log("Unauthorized request")
-                return false
+                console.log("Unauthorized request");
+                return null
             });
     });
 };
