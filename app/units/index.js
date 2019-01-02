@@ -1,22 +1,31 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 const cors = require('cors')({
-    origin: true
+    origin:true
 });
 
 exports.unit = functions.region('europe-west1').https.onRequest((req, res) => {
-    return cors(res, req, () => {
-        const dbref = admin.database.ref();
-
+    return cors(req, res, () => {
+        const dbref = admin.database().ref();
         let unit_uid = '';
+        let user_uid = '';
         if (req.method === 'PUT' || req.method === 'GET') {
-            if (req.query.hasOwnProperty('id')) {
-                unit_uid = req.query.id;
-            } else if (req.body.hasOwnProperty('id')) {
-                unit_uid = req.body.id
+            if (req.query.hasOwnProperty('unit_uid')) {
+                unit_uid = req.query.unit_uid;
+            } else if (req.body.hasOwnProperty('unit_uid')) {
+                unit_uid = req.body.unit_uid
             } else {
                 return res.status(400).json({
                     message: "No Unit ID is available in JSON body or URL"
+                });
+            }
+            if (req.query.hasOwnProperty('user_uid')) {
+                user_uid = req.query.user_uid;
+            } else if(req.body.hasOwnProperty('user_uid')) {
+                user_uid = req.body.user_uid;
+            } else {
+                return res.status(400).json({
+                    message: "No user id present in url or JSON body."
                 });
             }
         }
@@ -42,7 +51,7 @@ exports.unit = functions.region('europe-west1').https.onRequest((req, res) => {
             })
         }
         else if (req.method === 'GET') {
-            let unit = dbref.child('Users').child(data.user_uid).child('Units');
+            let unit = dbref.child('Users').child(user_uid).child('Units');
             unit.once('value').then((snapshot) => {
                 if(!snapshot.child(unit_uid).exists()) {
                     return res.status(404).json({
@@ -64,9 +73,9 @@ exports.unit = functions.region('europe-west1').https.onRequest((req, res) => {
     })
 });
 
-exports.units = functions.https.onRequest((req, res) => {
+exports.units = functions.region('europe-west1').https.onRequest((req, res) => {
     return cors(req, res, () => {
-        const dbref = admin.database.ref();
+        const dbref = admin.database().ref();
         if (req.method !== 'GET') {
             return res.status(401).json({
                 message: 'Denied. Units endpoint is read-only.'
@@ -75,7 +84,7 @@ exports.units = functions.https.onRequest((req, res) => {
 
         let user_uid = '';
         if (req.query.hasOwnProperty('user_uid')) {
-            user_uid = req.query.id;
+            user_uid = req.query.user_uid;
         } else if (req.body.hasOwnProperty('user_uid')) {
             user_uid = req.body.user_uid
         } else {
@@ -99,11 +108,11 @@ exports.units = functions.https.onRequest((req, res) => {
                 snapshot.val()
             );
         })
-    });
+    })
 });
 
-exports.updateFcmToken = functions.https.onRequest((req, res) => {
-    const dbref = admin.firebase().ref();
+exports.updateFcmToken = functions.region('europe-west1').https.onRequest((req, res) => {
+    const dbref = admin.database().ref();
     if(req.method !== "PUT") {
         return res.status(400).json({
             message: "Bad request, PUT Required"
