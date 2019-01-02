@@ -42,9 +42,11 @@ const dbref = realTimeDatabase.ref();
 module.exports.device = functions.region('europe-west1').https.onRequest((req, res) => {
 
     if (module.exports.authentication(req, res) !== null) {
+
+        var devicesRef;
         if (req.body.constructor === Object && Object.keys(req.body).length === 0) {
             if (req.method === 'GET') {
-                var devicesRef = dbref.child('Devices');
+                devicesRef = dbref.child('Devices');
                 devicesRef.on('value', function (snapshot) {
                     return res.status(200).json(snapshot.child(req.query.id).val());
                 });
@@ -57,7 +59,7 @@ module.exports.device = functions.region('europe-west1').https.onRequest((req, r
             }
         } else {
             if (req.method === 'POST') {
-                var devicesRef = dbref.child('Devices');
+                devicesRef = dbref.child('Devices');
                 devicesRef.on('value', function (snapshot) {
                     return res.status(200).json(snapshot.child(req.body.id).val());
                 });
@@ -87,14 +89,15 @@ module.exports.devices = functions.region('europe-west1').https.onRequest((req, 
 
     if (req.body.constructor === Object && Object.keys(req.body).length === 0) {
 
+        var devicesRef;
         if (req.method === 'GET') {
             if (Object.keys(req.query).length === 0) {
-                var devicesRef = dbref.child('Devices');
+                devicesRef = dbref.child('Devices');
                 devicesRef.on('value', function (snapshot) {
                     return res.status(200).json(snapshot.val());
                 });
             } else {
-                var devicesRef = dbref.child('Devices');
+                devicesRef = dbref.child('Devices');
                 devicesRef.orderByChild('room_id').equalTo(req.query.room).on('value', function (snapshot) {
                     return res.status(200).json(snapshot.val());
                 });
@@ -102,7 +105,7 @@ module.exports.devices = functions.region('europe-west1').https.onRequest((req, 
         }
     } else {
         if (req.method === 'POST') {
-            var devicesRef = dbref.child('Devices');
+            devicesRef = dbref.child('Devices');
             devicesRef.orderByChild('room_id').equalTo(req.body.room).on('value', function (snapshot) {
                 return res.status(200).json(snapshot.val());
             });
