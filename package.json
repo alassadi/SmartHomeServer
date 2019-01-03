@@ -6,8 +6,13 @@
   "scripts": {
     "prebuild": "node ./node_modules/rimraf/bin functions",
     "build": "babel app --out-dir functions --copy-files --ignore app/node_modules",
+    "shell": "npm run build && cd functions && npm run shell",
+    "serve": "firebase serve --only hosting",
+    "serve:functions": "npm run build && cd functions && npm run serve",
     "predeploy": "npm run build",
     "deploy": "firebase deploy --only functions",
+    "deploy:hosting": "firebase deploy --only hosting",
+    "deploy:all": "firebase deploy",
     "postbuild": "cd functions && npm i -s"
   },
   "repository": {

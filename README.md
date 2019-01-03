@@ -15,12 +15,29 @@ npm install -g firebase-tools
 firebase login
 ```
 
-## Running the tests
+## How to run functions locally
 
-Run
+Most functions are authenticated, so first of all, you will need an auth token. For that, you can run a local login server using
+```
+npm run serve
+```
+
+Log in, and copy your authentication token. Then, run
 
 ```
-npm run test
+npm run shell
+```
+to run the Firebase Shell. From there you can execute your functions, the documentation on how to craft your request is [here](https://www.npmjs.com/package/request).
+What follows is an example. If you would like to test the 'get all units' function, in the shell you would enter
+
+```
+units.get().auth(null, null, true, 'your auth token');
+```
+
+You can also use Postman, just add your token in your bearer authentication header, and run this instead of the shell.
+
+```
+npm run serve:functions
 ```
 
 ## Versioning
