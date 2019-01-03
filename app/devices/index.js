@@ -41,36 +41,38 @@ const dbref = realTimeDatabase.ref();
  */
 module.exports.device = functions.region('europe-west1').https.onRequest((req, res) => {
 
-    if (module.exports.authentication(req, res) !== null) {
+    //if (module.exports.authentication(req, res) !== null) {
 
-        var devicesRef;
-        if (req.body.constructor === Object && Object.keys(req.body).length === 0) {
-            if (req.method === 'GET') {
-                devicesRef = dbref.child('Devices');
-                devicesRef.on('value', function (snapshot) {
-                    return res.status(200).json(snapshot.child(req.query.id).val());
-                });
-            } else if (req.method === 'POST') {
-                return dbref.child('Devices/' + req.query.id).update({ 'enabled': req.query.enabled }).then(res.status(200).json({
-                    'enabled': req.query.enabled
-                })).catch(err => {
-                    console.log('Error updating database', err);
-                });
-            }
-        } else {
-            if (req.method === 'POST') {
-                devicesRef = dbref.child('Devices');
-                devicesRef.on('value', function (snapshot) {
-                    return res.status(200).json(snapshot.child(req.body.id).val());
-                });
-            } else if (req.method === 'PUT') {
-                return dbref.child('Devices/' + req.body.id).update({'enabled': req.body.enabled}).then(res.status(200).json({
-                    'enabled': req.body.enabled
-                })).catch(err => {
-                    console.log('Error updating database', err);
-                });
-            }
+    var devicesRef;
+    if (req.body.constructor === Object && Object.keys(req.body).length === 0) {
+        if (req.method === 'GET') {
+            devicesRef = dbref.child('Devices');
+            devicesRef.on('value', function (snapshot) {
+                return res.status(200).json(snapshot.child(req.query.id).val());
+            });
+        } else if (req.method === 'POST') {
+            devicesRef = dbref.child('Devices')
+            return dbref.child('Devices/' + req.query.id).update({ 'value': req.query.value }).then(devicesRef.on('value', function (snapshot) {
+                return res.status(200).json(snapshot.child(req.query.id).val());
+            })).catch(err => {
+                console.log('Error updating database', err);
+            });
         }
+    } else {
+        if (req.method === 'POST') {
+            devicesRef = dbref.child('Devices');
+            devicesRef.on('value', function (snapshot) {
+                return res.status(200).json(snapshot.child(req.body.id).val());
+            });
+        } else if (req.method === 'PUT') {
+            devicesRef = dbref.child('Devices')
+            return dbref.child('Devices/' + req.body.id).update({'value': req.body.value}).then(devicesRef.on('value', function (snapshot) {
+                return res.status(200).json(snapshot.child(req.body.id).val());
+            })).catch(err => {
+                console.log('Error updating database', err);
+            });
+        }
+        //}
     }});
 
 /**
