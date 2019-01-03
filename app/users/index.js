@@ -9,7 +9,6 @@ const app = express();
 
 app.use(require('cors')({ origin: true }));
 app.use(cookieParser);
-app.use('/:id', authMiddleware);
 app.use(bodyParser.json());
 
 const checkUserData = data =>
@@ -25,28 +24,7 @@ const checkUserData = data =>
         && data.hasOwnProperty('date_of_birth')
         && data.hasOwnProperty('gender');
 
-app.get('/:id', (req, res) => {
-  const user_id = req.params.id;
-  const dbref = admin.database().ref();
-  const user = dbref.child('Users');
-  if (!user_id) {
-    return res.status(400).json({
-      message: 'Denied. Uid must be present either as a URL parameter or as part of the request body.'
-    });
-  }
-  user.once('value').then((snapshot) => {
-    if(!snapshot.child(user_id).exists()) {
-      return res.status(404).json({
-        message: 'User with specified UID does not exist.'
-      });
-    } else {
-      res.status(200).json(
-        snapshot.child(user_id).val()
-      );
-    }
-  });
-});
-
+        
 app.post('/', (req, res) => {
   if (!req.body) {
     return res.status(400).json({
@@ -96,7 +74,30 @@ app.post('/', (req, res) => {
     });
 });
 
-app.put('/:id', (req, res) => {
+
+app.get('/:id', authMiddleware, (req, res) => {
+  const user_id = req.params.id;
+  const dbref = admin.database().ref();
+  const user = dbref.child('Users');
+  if (!user_id) {
+    return res.status(400).json({
+      message: 'Denied. Uid must be present either as a URL parameter or as part of the request body.'
+    });
+  }
+  user.once('value').then((snapshot) => {
+    if(!snapshot.child(user_id).exists()) {
+      return res.status(404).json({
+        message: 'User with specified UID does not exist.'
+      });
+    } else {
+      res.status(200).json(
+        snapshot.child(user_id).val()
+      );
+    }
+  });
+});
+
+app.put('/:id', authMiddleware, (req, res) => {
   const dbref = admin.database().ref();
   const data = req.body;
   const user_id = req.params.id;
