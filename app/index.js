@@ -6,7 +6,6 @@ admin.initializeApp(functions.config().firebase);
 const rooms = require('./rooms');
 const devices = require('./devices');
 const units = require('./units');
-const users = require('./users');
 
 const funs = {
   helloWorld: functions.https.onRequest((req, res) => {
@@ -14,8 +13,7 @@ const funs = {
   }),
   ...rooms,
   ...devices,
-  ...units,
-  ...users
+  ...units
 };
 
 module.exports = funs;
