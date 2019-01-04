@@ -100,7 +100,7 @@ app.get('/', (req, res) => {
 
 exports.units = functions.region('europe-west1').https.onRequest(app);
 
-exports.updateFcmToken = functions.region('europe-west1').https.onRequest((req, res) => {
+const updateFcmToken = functions.region('europe-west1').https.onRequest((req, res) => {
   const dbref = admin.database().ref();
   if(req.method !== 'PUT') {
     return res.status(400).json({
