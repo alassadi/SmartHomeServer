@@ -74,35 +74,38 @@ app.post('/', (req, res) => {
     });
 });
 
-
-app.get('/:id', authMiddleware, (req, res) => {
-  const user_id = req.params.id;
+const getUser = (userId, res) => {
   const dbref = admin.database().ref();
   const user = dbref.child('Users');
-  if (!user_id) {
+  console.log(userId);
+  if (!userId) {
     return res.status(400).json({
       message: 'Denied. Uid must be present either as a URL parameter or as part of the request body.'
     });
   }
   user.once('value').then((snapshot) => {
-    if(!snapshot.child(user_id).exists()) {
+    if(!snapshot.child(userId).exists()) {
       return res.status(404).json({
         message: 'User with specified UID does not exist.'
       });
     } else {
       res.status(200).json(
-        snapshot.child(user_id).val()
+        snapshot.child(userId).val()
       );
     }
   });
-});
+}
 
-app.put('/:id', authMiddleware, (req, res) => {
+app.get('/', authMiddleware, (req, res) => getUser(req.user.uid, res));
+
+app.get('/:id', authMiddleware, (req, res) => getUser(req.params.id, res));
+
+app.put('/', authMiddleware, (req, res) => {
   const dbref = admin.database().ref();
   const data = req.body;
-  const user_id = req.params.id;
+  const userId = req.user.uid;
   const user = dbref.child('Users');
-  if (!user_id) {
+  if (!userId) {
     return res.status(400).json({
       message: 'Denied. Uid must be present either as a URL parameter or as part of the request body.'
     });
@@ -119,7 +122,7 @@ app.put('/:id', authMiddleware, (req, res) => {
       message: 'Denied. Email must be changed through change email functionality'
     });
   }
-  user.child(user_id).update({
+  user.child(userId).update({
     [data.updated_type] : data.value.toString()
   })
     .then(() => {

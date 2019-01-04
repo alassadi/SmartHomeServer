@@ -77,7 +77,7 @@ module.exports.onDeviceUpdated = functions.region('europe-west1').database.ref('
  * @param req
  * @param res
  */
-module.exports.authentication = function authentication(req, res) {
+const authentication = (req, res) => {
   cors(req, res, () => {
     const tokenId = req.get('Authorization').split('Bearer ')[1];
 
