@@ -110,7 +110,7 @@ app.put('/', authMiddleware, (req, res) => {
       message: 'Denied. Uid must be present either as a URL parameter or as part of the request body.'
     });
   }
-  if (req.body) {
+  if (!req.body) {
     return res.status(400).json({
       message: 'No content. UID required as a URL parameter or as part of request body. ' +
                     '\n Changeable values include: first_name, last_name, phone, address, postal_code, ' +
