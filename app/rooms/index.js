@@ -1,77 +1,33 @@
 const functions = require('firebase-functions');
-const cors = require('cors')({
-  origin: true
-});
+const cors = require('cors');
+const authMiddleware = require('../middleware/auth');
+const cookieParser = require('cookie-parser')();
 const admin = require('firebase-admin');
-const database = admin.firestore();
+const realTimeDatabase = admin.database();
+const dbref = realTimeDatabase.ref();
+const express = require('express');
 
+const app = express();
+
+app.use(cors({ origin: true }));
+app.use(cookieParser);
+app.use(authMiddleware);
+app.get('/', (req, res) => getRoomsFromDatabase(res));
+app.get('/:id', (req, res) => getRoomDevices(req.params.id, req, res));
 
 const getRoomsFromDatabase = (res) => {
-  let rooms = [];
+  const roomsRef = dbref.child('Rooms');
 
-  return database.collection('Rooms').get()
-    .then((snapshot) => {
-      snapshot.forEach((room_number) => {
-        rooms.push({
-          id: room_number.id,
-          number: room_number.data()
-        });
-      });
-      res.status(200).json(rooms);
-    }, (error) => {
-      res.status(error.code).json({
-        message: `Something went wrong. ${error.message}`
-      });
-    })
-    .catch((err) => {
-      console.log('Error getting documents', err);
-    });
+  roomsRef.on('value', function (snapshot) {
+    return res.status(200).json(snapshot.val());
+  });
 };
 
-
-module.exports.getRooms = functions.https.onRequest((req, res) => {
-  return cors(req, res, () => {
-    if (req.method !== 'GET') {
-      return res.status(401).json({
-        message: 'Not allowed'
-      });
-    }
-    //console.log(req.query);
-    getRoomsFromDatabase(res);
+const getRoomDevices = (id, req, res) => {
+  const devicesRef = dbref.child('Devices');
+  devicesRef.orderByChild('room_id').equalTo(req.params.id).on('value', function (snapshot) {
+    return res.status(200).json(snapshot.val());
   });
-});
-
-
-const getRoomDevices = (res,req) => {
-  let devices = [];
-
-  return database.collection('Devices').where('roomUUID', '==', req.query.id).get()
-    .then((snapshot) => {
-      snapshot.forEach((name) => {
-        devices.push({
-          device_id: name.id,
-          details: name.data()
-        });
-      });
-      res.status(200).json(devices);
-    }, (error) => {
-      res.status(error.code).json({
-        message: 'Something went wrong. ${error.message}'
-      });
-    })
-    .catch((err) => {
-      console.log('Error getting documents', err);
-    });
 };
 
-
-module.exports.getRoomDevices = functions.https.onRequest((req, res) => {
-  return cors(req, res, () => {
-    if (req.method !== 'GET') {
-      return res.status(401).json({
-        message: 'Not allowed'
-      });
-    }
-    getRoomDevices(res,req);
-  });
-});
+module.exports.rooms = functions.region('europe-west1').https.onRequest(app);
