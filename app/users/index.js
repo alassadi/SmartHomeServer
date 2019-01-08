@@ -94,7 +94,7 @@ const getUser = (userId, res) => {
       );
     }
   });
-}
+};
 
 app.get('/', authMiddleware, (req, res) => getUser(req.user.uid, res));
 

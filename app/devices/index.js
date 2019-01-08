@@ -1,7 +1,4 @@
 const functions = require('firebase-functions');
-const cors = require('cors')({
-  origin: true
-});
 const admin = require('firebase-admin');
 const realTimeDatabase = admin.database();
 const dbref = realTimeDatabase.ref();
@@ -25,27 +22,27 @@ app.use(authMiddleware);
  */
 app.get('/', (req, res) => {
   const devicesRef = dbref.child('Devices');
-  devicesRef.on('value', function (snapshot) {
+  devicesRef.once('value', function (snapshot) {
     return res.status(200).json(snapshot.val());
   });
 });
 
 app.get('/codable/', (req, res) => {
   const devicesRef = dbref.child('Devices');
-  devicesRef.on('value', function (snapshot) {
-      let deviceList = [];
-      snapshot.forEach(function(childSnapshot) {
-          let childKey = childSnapshot.key;
-          let item = {
-              id: childKey,
-              name: childSnapshot.child('name').val(),
-              room_id: childSnapshot.child('room_id').val(),
-              value: childSnapshot.child('value').val()
-          };
-          deviceList.push(item)
-      });
-    return res.status(200).json(deviceList)
-  })
+  devicesRef.once('value', function (snapshot) {
+    let deviceList = [];
+    snapshot.forEach(function(childSnapshot) {
+      let childKey = childSnapshot.key;
+      let item = {
+        id: childKey,
+        name: childSnapshot.child('name').val(),
+        room_id: childSnapshot.child('room_id').val(),
+        value: childSnapshot.child('value').val()
+      };
+      deviceList.push(item);
+    });
+    return res.status(200).json(deviceList);
+  });
 });
 
 /** 
@@ -63,7 +60,7 @@ app.get('/codable/', (req, res) => {
 
 app.get('/:id', (req, res) => {
   const devicesRef = dbref.child('Devices');
-  devicesRef.on('value', function (snapshot) {
+  devicesRef.once('value', function (snapshot) {
     return res.status(200).json(snapshot.child(req.params.id).val());
   });
 });
@@ -88,34 +85,10 @@ module.exports.onDeviceUpdated = functions.region('europe-west1').database.ref('
   admin.messaging().send({
     data: {
       id: device.key,
-      data: device.val()
+      data: JSON.parse(device.val())
     },
     topic: 'deviceUpdate'
   })
     .then(response => console.log(`Successfully sent message: ${response}`))
     .catch(error => console.log(`Error sending message ${error}`));
 });
-
-/**
- * Checks user authentication. ID token
- * needs to be fetched on the front end after
- * the user has been created
- * @param req
- * @param res
- */
-const authentication = (req, res) => {
-  cors(req, res, () => {
-    const tokenId = req.get('Authorization').split('Bearer ')[1];
-
-    return admin.auth().verifyIdToken(tokenId)
-      .then(function(decodedToken) {
-        var uid = decodedToken.uid;
-        console.log('Authorized request');
-        return uid;
-      })
-      .catch((err) => {res.status(401).send(err);
-        console.log('Unauthorized request');
-        return null;
-      });
-  });
-};
