@@ -30,6 +30,24 @@ app.get('/', (req, res) => {
   });
 });
 
+app.get('/codable/', (req, res) => {
+  const devicesRef = dbref.child('Devices');
+  devicesRef.on('value', function (snapshot) {
+      let deviceList = [];
+      snapshot.forEach(function(childSnapshot) {
+          let childKey = childSnapshot.key;
+          let item = {
+              id: childKey,
+              name: childSnapshot.child('name').val(),
+              room_id: childSnapshot.child('room_id').val(),
+              value: childSnapshot.child('value').val()
+          };
+          deviceList.push(item)
+      });
+    return res.status(200).json(deviceList)
+  })
+});
+
 /** 
  * With URL parameters:
  * Send a POST request such as
