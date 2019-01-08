@@ -66,8 +66,16 @@ module.exports.devices = functions.region('europe-west1').https.onRequest(app);
  * on the realtime database
  * @type {CloudFunction<Change<DataSnapshot>>}
  */
-module.exports.onDeviceUpdated = functions.region('europe-west1').database.ref('Devices').onUpdate(() => {
-  console.log('the status of devices on realtime db has been updated');
+module.exports.onDeviceUpdated = functions.region('europe-west1').database.ref('Devices').onUpdate(({ after: device }) => {
+  admin.messaging().send({
+    data: {
+      id: device.key,
+      data: device.val()
+    },
+    topic: 'deviceUpdate'
+  })
+    .then(response => console.log(`Successfully sent message: ${response}`))
+    .catch(error => console.log(`Error sending message ${error}`));
 });
 
 /**
