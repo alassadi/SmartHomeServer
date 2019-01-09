@@ -81,11 +81,20 @@ module.exports.devices = functions.region('europe-west1').https.onRequest(app);
  * on the realtime database
  * @type {CloudFunction<Change<DataSnapshot>>}
  */
-module.exports.onDeviceUpdated = functions.region('europe-west1').database.ref('Devices').onUpdate(({ after: device }) => {
+module.exports.onDeviceUpdated = functions.region('europe-west1').database.ref('Devices').onUpdate(({ before, after }) => {
+  const devicesBefore = before.toJSON();
+  const devices = after.toJSON();
+  Object.keys(devices).forEach(key => {
+    if (devicesBefore[ key ] && devices[ key ]){
+      if (JSON.stringify(devicesBefore[ key ]) === JSON.stringify(devices[ key ])) {
+        delete devices[ key ];
+      }
+    }
+  });
+  console.log(JSON.stringify(devices));
   admin.messaging().send({
     data: {
-      id: device.key,
-      data: JSON.parse(device.val())
+      updated: JSON.stringify(devices)
     },
     topic: 'deviceUpdate'
   })
