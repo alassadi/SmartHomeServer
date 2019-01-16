@@ -14,19 +14,39 @@ app.use(cookieParser);
 app.use(authMiddleware);
 app.get('/', (req, res) => getRoomsFromDatabase(res));
 app.get('/:id', (req, res) => getRoomDevices(req.params.id, req, res));
+app.get('/codable/:id', (req, res) => getRoomDevicesIos(req, res));
 
 const getRoomsFromDatabase = (res) => {
   const roomsRef = dbref.child('Rooms');
 
-  roomsRef.on('value', function (snapshot) {
+  roomsRef.once('value', function (snapshot) {
     return res.status(200).json(snapshot.val());
   });
 };
 
 const getRoomDevices = (id, req, res) => {
   const devicesRef = dbref.child('Devices');
-  devicesRef.orderByChild('room_id').equalTo(req.params.id).on('value', function (snapshot) {
+  devicesRef.orderByChild('room_id').equalTo(req.params.id).once('value', function (snapshot) {
     return res.status(200).json(snapshot.val());
+  });
+};
+
+const getRoomDevicesIos = (req, res) => {
+  const devicesRef = dbref.child('Devices');
+  const roomId = req.params.id;
+  devicesRef.orderByChild('room_id').equalTo(roomId).once('value', function (snapshot) {
+    let deviceList = [];
+    snapshot.forEach(function(childSnapshot) {
+      let childKey = childSnapshot.key;
+      let item = {
+        id: childKey,
+        name: childSnapshot.child('name').val(),
+        room_id: childSnapshot.child('room_id').val(),
+        value: childSnapshot.child('value').val()
+      };
+      deviceList.push(item);
+    });
+    return res.status(200).json(deviceList);
   });
 };
 

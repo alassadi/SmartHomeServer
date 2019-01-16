@@ -24,7 +24,7 @@ app.get('/:id', (req, res) => {
       });
     }
   });
-  unit.on('value', function (snapshot) {
+  unit.once('value', function (snapshot) {
     return res.status(200).json(
       snapshot.child(unit_uid).val()
     );
@@ -99,26 +99,3 @@ app.get('/', (req, res) => {
 });
 
 exports.units = functions.region('europe-west1').https.onRequest(app);
-
-exports.updateFcmToken = functions.region('europe-west1').https.onRequest((req, res) => {
-  const dbref = admin.database().ref();
-  if(req.method !== 'PUT') {
-    return res.status(400).json({
-      message: 'Bad request, PUT Required'
-    });
-  }
-  const data = req.body;
-  dbref.child('Users').child(data.user_uid).child('Units').child(data.unit_uid).update({
-    fcm_token : data.fcm_token.toString()
-  })
-    .then(() => {
-      console.log('FCM Token added to client for user: ' + data.user_uid);
-      return res.status(200).json({
-        message: 'Fcm token registered'
-      });
-    }).catch((error) => {
-      res.json({
-        message: 'error' + error.toString()
-      });
-    });
-});
