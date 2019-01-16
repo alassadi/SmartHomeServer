@@ -74,43 +74,40 @@ app.post('/', (req, res) => {
     });
 });
 
-const getUser = (userId, res) => {
+
+app.get('/:id', authMiddleware, (req, res) => {
+  const user_id = req.params.id;
   const dbref = admin.database().ref();
   const user = dbref.child('Users');
-  console.log(userId);
-  if (!userId) {
+  if (!user_id) {
     return res.status(400).json({
       message: 'Denied. Uid must be present either as a URL parameter or as part of the request body.'
     });
   }
   user.once('value').then((snapshot) => {
-    if(!snapshot.child(userId).exists()) {
+    if(!snapshot.child(user_id).exists()) {
       return res.status(404).json({
         message: 'User with specified UID does not exist.'
       });
     } else {
       res.status(200).json(
-        snapshot.child(userId).val()
+        snapshot.child(user_id).val()
       );
     }
   });
-};
+});
 
-app.get('/', authMiddleware, (req, res) => getUser(req.user.uid, res));
-
-app.get('/:id', authMiddleware, (req, res) => getUser(req.params.id, res));
-
-app.put('/', authMiddleware, (req, res) => {
+app.put('/:id', authMiddleware, (req, res) => {
   const dbref = admin.database().ref();
   const data = req.body;
-  const userId = req.user.uid;
+  const user_id = req.params.id;
   const user = dbref.child('Users');
-  if (!userId) {
+  if (!user_id) {
     return res.status(400).json({
       message: 'Denied. Uid must be present either as a URL parameter or as part of the request body.'
     });
   }
-  if (!req.body) {
+  if (req.body) {
     return res.status(400).json({
       message: 'No content. UID required as a URL parameter or as part of request body. ' +
                     '\n Changeable values include: first_name, last_name, phone, address, postal_code, ' +
@@ -122,7 +119,7 @@ app.put('/', authMiddleware, (req, res) => {
       message: 'Denied. Email must be changed through change email functionality'
     });
   }
-  user.child(userId).update({
+  user.child(user_id).update({
     [data.updated_type] : data.value.toString()
   })
     .then(() => {
